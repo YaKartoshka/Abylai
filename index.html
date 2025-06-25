@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<title>Игра: Прячемся от монстра</title>
+<style>
+  #gameArea {
+    position: relative;
+    width: 600px;
+    height: 400px;
+    border: 2px solid black;
+    background-color: #f0f0f0;
+  }
+  .player, .monster {
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 30px;
+    font-weight: bold;
+    color: white;
+    user-select: none;
+  }
+  .player {
+    background-color: blue;
+  }
+  .caught {
+    background-color: gray !important;
+  }
+  .monster {
+    background-color: red;
+  }
+  #info {
+    margin-top: 10px;
+  }
+  button {
+    margin-top: 10px;
+  }
+</style>
+</head>
+<body>
+
+<h2>Игра: Прячемся от монстра</h2>
+<div id="gameArea"></div>
+<div id="info"></div>
+<button id="moveMonsterBtn">Сдвинуть монстра</button>
+
+<script>
+  const gameArea = document.getElementById('gameArea');
+  const info = document.getElementById('info');
+  const moveMonsterBtn = document.getElementById('moveMonsterBtn');
+
+  // Параметры
+  const width = 600;
+  const height = 400;
+  const playerSize = 30;
+  const numPlayers = 5;
+
+  // Игроки
+  let players = [];
+  for(let i = 0; i < numPlayers; i++) {
+    players.push({
+      id: i + 1,
+      x: Math.floor(Math.random() * (width - playerSize)),
+      y: Math.floor(Math.random() * (height - playerSize)),
+      caught: false
+    });
+  }
+
+  // Монстр
+  let monster = {
+    x: Math.floor(Math.random() * (width - playerSize)),
+    y: Math.floor(Math.random() * (height - playerSize)),
+  };
+
+  // Создаем элементы игроков и монстра
+  function createElements() {
+    gameArea.innerHTML = '';
+    players.forEach(p => {
+      const div = document.createElement('div');
+      div.classList.add('player');
+      if (p.caught) div.classList.add('caught');
+      div.style.left = p.x + 'px';
+      div.style.top = p.y + 'px';
+      div.textContent = p.id;
+      div.id = 'player' + p.id;
+      gameArea.appendChild(div);
+    });
+
+    const m = document.createElement('div');
+    m.classList.add('monster');
+    m.style.left = monster.x + 'px';
+    m.style.top = monster.y + 'px';
+    m.textContent = 'M';
+    m.id = 'monster';
+    gameArea.appendChild(m);
+  }
+
+  // Проверка, пойман ли игрок
+  function checkCaught() {
+    players.forEach(p => {
+      if (!p.caught) {
+        // Простое условие: если расстояние меньше 30px (размер игрока), пойман
+        const dist = Math.hypot(monster.x - p.x, monster.y - p.y);
+        if (dist < playerSize) {
+          p.caught = true;
+          info.textContent = `Монстр поймал игрока №${p.id}!`;
+        }
+      }
+    });
+  }
+
+  // Монстр случайно перемещается
+  function moveMonster() {
+    if(players.every(p => p.caught)) {
+      info.textContent = 'Все игроки пойманы! Игра окончена.';
+      moveMonsterBtn.disabled = true;
+      return;
+    }
+    // Монстр сдвигается случайно на -50..+50 пикселей по x и y, но не выходит за границы
+    const dx = Math.floor(Math.random() * 101) - 50;
+    const dy = Math.floor(Math.random() * 101) - 50;
+    monster.x = Math.min(width - playerSize, Math.max(0, monster.x + dx));
+    monster.y = Math.min(height - playerSize, Math.max(0, monster.y + dy));
+    checkCaught();
+    createElements();
+  }
+
+  createElements();
+  moveMonsterBtn.addEventListener('click', moveMonster);
+</script>
+
+</body>
+</html>
